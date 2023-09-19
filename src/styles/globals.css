@@ -1,0 +1,132 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@font-face {
+  font-family: "Poppins";
+  src: url("../../public/fonts/Poppins-Regular.ttf");
+}
+
+*{
+  font-family: 'Poppins', sans-serif;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-thumb {
+  background-color: rgb(216, 216, 216);
+  border-radius: 40px;
+}
+::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+
+.navbar-sm-animation {
+  z-index: 1000000;
+  -webkit-animation: slide-top 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+  animation: slide-top 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+@-webkit-keyframes slide-top {
+  0% {
+    -webkit-transform: translateY(100px);
+    transform: translateY(100px);
+  }
+  100% {
+    -webkit-transform: translateY(0);
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-top {
+  0% {
+    -webkit-transform: translateY(100px);
+    transform: translateY(100px);
+  }
+  100% {
+    -webkit-transform: translateY(0);
+    transform: translateY(0);
+  }
+}
+
+
+.glassmorphism {
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 32px 0 rgba(255, 255, 255, 0);
+  backdrop-filter: blur(190px);
+  -webkit-backdrop-filter: blur(2px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+
+}
+
+.button-animation {
+  display: flex;
+  position: relative;
+  text-decoration: none;
+  font-family: "poppins";
+  color: #fff;
+  background: #444444;
+  border: 2px solid #444444;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s, background 0.2s;
+  overflow: hidden;
+}
+
+.button-animation:before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #444444;
+  transition: transform 0.2s;
+  transform-origin: right;
+  transform: scaleX(1);
+  z-index: -1;
+}
+
+.button-animation:hover:before {
+  transform: scaleX(0);
+}
+
+.button-animation:hover {
+  background: transparent;
+}
+.button-animation-bgWhite {
+  display: flex;
+  position: relative;
+  text-decoration: none;
+  font-family: "poppins";
+  color: #444444;
+  background: #eeeeee;
+  border: 2px solid #eeeeee;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s, background 0.2s;
+  overflow: hidden;
+}
+
+.button-animation-bgWhite:before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #eeeeee;
+  transition: transform 0.2s;
+  transform-origin: right;
+  transform: scaleX(1);
+  z-index: -1;
+}
+
+.button-animation-bgWhite:hover:before {
+  transform: scaleX(0);
+}
+
+.button-animation-bgWhite:hover {
+  background: transparent;
+}
