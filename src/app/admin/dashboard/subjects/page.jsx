@@ -1,10 +1,59 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AddSubjectForm from "@/components/forms/addSubjectForm";
+import DataGrid from "@/components/tables/dataGrid";
+import axios from "axios";
 
 export default function Subjects() {
+  const [subjects, setSubjects] = useState(null);
   const [addSubjectToggle, setAddSubjectToggle] = useState(false);
+  const [editingSubject, setEditingSubject] = useState(null);
+
+  const headers = ["Code", "Name"];
+
+  async function fetchSubjects() {
+    try {
+      const res = await axios.get(
+        `${process.env.NEXT_PUBLIC_SERVER_URL}/subject/getAll`
+      );
+      setSubjects(res.data.subjects);
+    } catch (error) {
+      console.log("failure", error);
+    }
+  }
+
+  async function refreshSubjects() {
+    setAddSubjectToggle(false);
+    setEditingSubject(null);
+    await fetchSubjects();
+  }
+
+  function renderRow(subject) {
+    return [subject.code, subject.name];
+  }
+
+  function handleDelete(subject) {
+    try {
+      axios.delete(
+        `${process.env.NEXT_PUBLIC_SERVER_URL}/subject/delete/${subject._id}`
+      );
+      refreshSubjects();
+    } catch (error) {
+      console.log("Unable to delete Subject", error);
+    }
+  }
+
+  function handleEdit(subject) {
+    setEditingSubject(subject);
+    setAddSubjectToggle(true);
+  }
+
+  useEffect(() => {
+    fetchSubjects();
+  }
+  , []);
+
   return (
     <div className="mt-1">
       <span className="flex justify-between items-start">
@@ -20,7 +69,22 @@ export default function Subjects() {
           {addSubjectToggle ? "Cancel" : "Add Subject"}
         </button>
       </span>
-      {addSubjectToggle && <AddSubjectForm />}
+      {addSubjectToggle ? (
+        <AddSubjectForm onSubjectsAdded={refreshSubjects} initialData={editingSubject}/>
+      ) : (
+        <div>
+          {subjects && (
+            <DataGrid
+              data={subjects}
+              headers={headers}
+              renderRow={renderRow}
+              onDelete={handleDelete}
+              onEdit={handleEdit}
+              showEditButton={true}
+            />
+          )}
+        </div>
+      )}
     </div>
   );
 }

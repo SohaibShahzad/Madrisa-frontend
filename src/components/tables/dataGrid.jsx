@@ -1,4 +1,13 @@
-function DataGrid({ data, headers, renderRow, onEdit, onDelete }) {
+function DataGrid({
+  data,
+  headers,
+  renderRow,
+  onEdit,
+  onDelete,
+  onView,
+  showViewButton,
+  showEditButton,
+}) {
   return (
     <div className="mt-5">
       <table className="table-auto w-full">
@@ -20,19 +29,29 @@ function DataGrid({ data, headers, renderRow, onEdit, onDelete }) {
                   {cell}
                 </td>
               ))}
-              <td className="border border-gray-300 px-2 py-1">
-                <button
-                  onClick={() => onEdit(item)}
-                  className="bg-blue-500 hover:bg-blue-700 text-white py-1 px-2 rounded transition duration-300"
-                >
-                  Edit
-                </button>
+              <td className="border border-gray-300 px-2 py-1 flex justify-evenly">
+                {showEditButton && (
+                  <button
+                    onClick={() => onEdit(item)}
+                    className="bg-blue-500 hover:bg-blue-700 text-white py-1 px-2 rounded transition duration-300"
+                  >
+                    Edit
+                  </button>
+                )}
                 <button
                   onClick={() => onDelete(item)}
                   className="bg-red-500 hover:bg-red-700 text-white py-1 px-2 rounded transition duration-300"
                 >
                   Delete
                 </button>
+                {showViewButton && (
+                  <button
+                    onClick={() => onView(item)}
+                    className="bg-green-500 hover:bg-green-700 text-white py-1 px-2 rounded transition duration-300"
+                  >
+                    View
+                  </button>
+                )}{" "}
               </td>
             </tr>
           ))}

@@ -3,58 +3,58 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import AddTeacherForm from "@/components/forms/addTeacherForm";
-import DataGrid from "@/components/tables/dataGrid";
 import ProfileCard from "@/components/cards/profileCard";
+import TeacherProfile from "@/components/sections/teacherProfile";
 
 export default function Teachers() {
   const [teachers, setTeachers] = useState(null);
   const [addTeacherToggle, setAddTeacherToggle] = useState(false);
-  const headers = [
-    "Name",
-    "Email",
-    "Phone",
-    // "Address",
-    // "DOB",
-    "Education",
-    // "Actions",
-  ];
+  const [selectedTeacher, setSelectedTeacher] = useState(null);
+  const [editingTeacher, setEditingTeacher] = useState(null);
 
-  function renderRow(teacher) {
-    return [
-      `${teacher.firstName} ${teacher.lastName}`,
-      teacher.email,
-      teacher.phone,
-      // teacher.address,
-      // teacher.dob,
-      `${teacher.education.university} - ${teacher.education.degree} - ${teacher.education.year}`,
-    ];
+  async function fetchTeachers() {
+    try {
+      const res = await axios.get(
+        `${process.env.NEXT_PUBLIC_SERVER_URL}/teacher/getAll`
+      );
+      setTeachers(res.data.teachers);
+    } catch (error) {
+      console.log("failure", error);
+    }
+  }
+
+  async function refreshTeachers() {
+    setAddTeacherToggle(false);
+    setEditingTeacher(null);
+    await fetchTeachers();
   }
 
   function handleEdit(teacher) {
-    console.log("Edit Teacher", teacher);
+    setEditingTeacher(teacher);
+    setAddTeacherToggle(true);
   }
 
   function handleDelete(teacher) {
-    console.log("Delete Teacher", teacher);
+    try {
+      axios.delete(
+        `${process.env.NEXT_PUBLIC_SERVER_URL}/teacher/delete/${teacher._id}`
+      );
+      refreshTeachers();
+    } catch (error) {
+      console.log("Unable to delete Teacher", error);
+    }
   }
 
   function handleViewProfile(teacher) {
-    console.log("View Profile", teacher);
+    setSelectedTeacher(teacher);
+  }
+
+  function handleCloseProfile() {
+    setSelectedTeacher(null);
   }
 
   useEffect(() => {
-    async function getAllTeachers() {
-      try {
-        const res = await axios.get(
-          `${process.env.NEXT_PUBLIC_SERVER_URL}/teacher/getAll`
-        );
-        setTeachers(res.data.teachers);
-      } catch (error) {
-        console.log("failure", error);
-      }
-    }
-
-    getAllTeachers();
+    fetchTeachers();
   }, []);
 
   return (
@@ -73,18 +73,17 @@ export default function Teachers() {
         </button>
       </span>
       {addTeacherToggle ? (
-        <AddTeacherForm />
+        <AddTeacherForm
+          initialData={editingTeacher}
+          onTeachersAdded={refreshTeachers}
+        />
+      ) : selectedTeacher ? (
+        <TeacherProfile
+          teacherData={selectedTeacher}
+          onClose={handleCloseProfile}
+        />
       ) : (
         <div>
-          {/* {teachers && (
-            <DataGrid
-              data={teachers}
-              headers={headers}
-              renderRow={renderRow}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-            />
-          )} */}
           {teachers && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {teachers.map((teacher) => (
@@ -93,7 +92,7 @@ export default function Teachers() {
                   teacher={teacher}
                   onEdit={handleEdit} // define this function to handle edit action
                   onDelete={handleDelete} // define this function to handle delete action
-                  onViewProfile={handleViewProfile} // define this function to handle view profile action
+                  onViewProfile={() => handleViewProfile(teacher)} // define this function to handle view profile action
                 />
               ))}
             </div>

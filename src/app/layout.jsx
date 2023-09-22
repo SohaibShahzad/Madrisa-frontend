@@ -10,10 +10,10 @@ import { Inter } from "next/font/google";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export const metadata = {
-  title: "LMS | Learning Management System",
-  description: "Madrissa Learning Management System",
-};
+// export const metadata = {
+//   title: "LMS | Learning Management System",
+//   description: "Madrissa Learning Management System",
+// };
 
 export default function RootLayout({ children }) {
   const pathname = usePathname();

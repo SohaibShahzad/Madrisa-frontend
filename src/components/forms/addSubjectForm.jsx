@@ -3,130 +3,101 @@
 import axios from "axios";
 import { useState, useEffect } from "react";
 
-async function addSubjectRequest(data, resetForm) {
+async function addSubjectRequest(data, isEditMode, onSuccess) {
+  const url = isEditMode
+    ? `${process.env.NEXT_PUBLIC_SERVER_URL}/subject/update/${data._id}`
+    : `${process.env.NEXT_PUBLIC_SERVER_URL}/subject/create`;
   try {
-    const res = await axios.post(
-      `${process.env.NEXT_PUBLIC_SERVER_URL}/subject/create`,
-      data
-    );
-    resetForm();
+    const res = await axios.post(url, data);
+    onSuccess();
     console.log("success", res);
   } catch (error) {
     console.log("failure", error);
   }
 }
 
-export default function AddSubjectForm() {
-  const [teachers, setTeachers] = useState(null);
+export default function AddSubjectForm({ onSubjectAdded, initialData }) {
   const formInputStyle =
     "bg-transparent border border-gray-300 rounded-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent";
-  const [formData, setFormData] = useState({
+  const initialFormData = {
+    code: "",
     name: "",
-    teachers: [{ teacherId: "", section: "" }],
-  });
+  };
+
+  const [formData, setFormData] = useState(initialFormData);
 
   useEffect(() => {
-    async function getAllTeachers() {
-      try {
-        const res = await axios.get(
-          `${process.env.NEXT_PUBLIC_SERVER_URL}/teacher/getAll`
-        );
-        setTeachers(res.data.teachers);
-      } catch (error) {
-        console.log("failure", error);
-      }
+    if (initialData) {
+      setFormData(initialData);
     }
-
-    getAllTeachers();
-  }, []);
+  }, [initialData]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleAddClick = () => {
-    setFormData({
-      ...formData,
-      teachers: [...formData.teachers, { teacherId: "", section: "" }],
-    });
-  };
-
-  const handleRemoveClick = (index) => {
-    const list = [...formData.teachers];
-    list.splice(index, 1);
-    setFormData({ ...formData, teachers: list });
-  };
-
   const resetForm = () => {
-    setFormData({ name: "", teachers: [{ teacherId: "", section: "" }] });
+    setFormData({ code: "", name: "" });
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    addSubjectRequest(formData, resetForm);
+    if (formData.code === "" || formData.name === "") {
+      alert("Please fill all the fields");
+    }
+    const isEditMode = !!initialData;
+    addSubjectRequest(formData, isEditMode, () => {
+      resetForm();
+      if (onSubjectAdded) {
+        onSubjectAdded();
+      }
+    });
   };
 
   return (
-    <form
-      className="flex flex-col gap-4"
-      onSubmit={handleSubmit}
-      encType="multipart/form-data"
-    >
-      <input
-        className={formInputStyle}
-        type="text"
-        name="name"
-        placeholder="Name"
-        value={formData.name}
-        onChange={handleInputChange}
-        required
-      />
-      {formData.teachers.map((teacher, index) => (
-        <div key={index} className="flex gap-2">
-          <select
-            className={formInputStyle}
-            name="teacherId"
-            value={teacher.teacherId}
-            onChange={(e) => handleChange(e, index)}
-            required
-          >
-            <option value="" disabled>
-              Select Teacher
-            </option>
-            {teachers.map((t) => (
-              <option key={t._id} value={t._id}>
-                {t.firstName} {t.lastName}
-              </option>
-            ))}
-          </select>
-          <input
-            className={formInputStyle}
-            type="text"
-            name="section"
-            placeholder="Section"
-            value={teacher.section}
-            onChange={(e) => handleChange(e, index)}
-            required
-          />
-          {formData.teachers.length - 1 === index && (
-            <button type="button" onClick={handleAddClick}>
-              Add
-            </button>
-          )}
-          {formData.teachers.length !== 1 && (
-            <button type="button" onClick={() => handleRemoveClick(index)}>
-              Remove
-            </button>
-          )}
+    <div className="mb-[10px]">
+      <form onSubmit={handleSubmit}>
+        <div className="glassmorphism rounded-lg p-5 mt-5">
+          <div className="flex flex-wrap -mx-2">
+            <div className="w-1/2 px-2 mb-4 space-y-1">
+              <label>Subject Name: </label>
+
+              <input
+                className={formInputStyle}
+                type="text"
+                name="name"
+                placeholder="Name"
+                value={formData.name}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+            <div className="w-1/2 px-2 mb-4 space-y-1">
+              <label>Subject Code: </label>
+
+              <input
+                className={formInputStyle}
+                type="text"
+                name="code"
+                placeholder="Code"
+                value={formData.code}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+          </div>
         </div>
-      ))}
-      <button
-        className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 rounded shadow-lg hover:shadow-xl transition duration-200"
-        type="submit"
-      >
-        Add Subject
-      </button>
-    </form>
+
+        <div className="flex justify-end gap-2 my-2">
+          <button
+            type="submit"
+            className="bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded transition duration-300"
+          >
+            Save
+          </button>
+        </div>
+      </form>
+    </div>
   );
 }

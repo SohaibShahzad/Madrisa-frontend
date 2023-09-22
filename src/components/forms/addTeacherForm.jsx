@@ -1,33 +1,46 @@
 "use client";
 
 import axios from "axios";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 
-async function addTeacherRequest(data, resetForm) {
+async function addOrUpdateTeacherRequest(data, isEditMode, onSuccess) {
+  const url = isEditMode
+    ? `${process.env.NEXT_PUBLIC_SERVER_URL}/teacher/update/${data._id}`
+    : `${process.env.NEXT_PUBLIC_SERVER_URL}/teacher/register`;
   try {
-    const res = await axios.post(
-      `${process.env.NEXT_PUBLIC_SERVER_URL}/teacher/register`,
-      data
-    );
-    resetForm();
+    const res = await axios.post(url, data);
+    onSuccess();
     console.log("success", res);
   } catch (error) {
     console.log("failure", error);
   }
 }
 
-export default function AddTeacherForm() {
+export default function AddTeacherForm({ onTeachersAdded, initialData }) {
   const formInputStyle =
     "bg-transparent border border-gray-300 rounded-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent";
   const fileInput = useRef();
   const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
+
+  const [isAddingSalary, setIsAddingSalary] = useState(false);
+  const [newSalary, setNewSalary] = useState({ amount: "", month: "" });
+
   const [imageFile, setImageFile] = useState(null);
+  const [subjects, setSubjects] = useState([]);
+  const [selectedSubjects, setSelectedSubjects] = useState([]);
+  const [continueWithoutSubject, setContinueWithoutSubject] = useState(false);
   const initialFormData = {
     firstName: "",
     lastName: "",
     email: "",
     password: "",
     phone: "",
+    salary: [
+      {
+        amount: "",
+        month: "",
+      },
+    ],
     dob: "",
     address: "",
     image: null,
@@ -38,6 +51,25 @@ export default function AddTeacherForm() {
     },
   };
   const [formData, setFormData] = useState(initialFormData);
+
+  useEffect(() => {
+    if (initialData) {
+      setFormData(initialData);
+      // setImagePreviewUrl(initialData.image);
+      setSelectedSubjects(initialData.subjects.map((sub) => sub.id));
+    }
+    async function fetchSubjects() {
+      try {
+        const res = await axios.get(
+          `${process.env.NEXT_PUBLIC_SERVER_URL}/subject/getAll`
+        );
+        setSubjects(res.data.subjects);
+      } catch (error) {
+        console.log("failure in subjects fetching", error);
+      }
+    }
+    fetchSubjects();
+  }, [initialData]);
 
   const handleImageChange = (e) => {
     e.preventDefault();
@@ -61,6 +93,32 @@ export default function AddTeacherForm() {
 
   const resetForm = () => {
     setFormData(initialFormData);
+  };
+
+  const handleCheckboxChange = (subjectId, isChecked) => {
+    if (isChecked) {
+      setSelectedSubjects((prevSubjects) => [...prevSubjects, subjectId]);
+    } else {
+      setSelectedSubjects((prevSubjects) =>
+        prevSubjects.filter((id) => id !== subjectId)
+      );
+    }
+  };
+
+  const handleContinueWithoutSubjectChange = (isChecked) => {
+    setContinueWithoutSubject(isChecked);
+    if (isChecked) {
+      setSelectedSubjects([]); // Clear all selected subjects
+    }
+  };
+
+  const addSalaryToList = () => {
+    setFormData({
+      ...formData,
+      salary: [...formData.salary, newSalary],
+    });
+    setNewSalary({ amount: "", month: "", datePaid: "" });
+    setIsAddingSalary(false);
   };
 
   const handleChange = (e) => {
@@ -90,18 +148,26 @@ export default function AddTeacherForm() {
       formData.password === "" ||
       formData.phone === "" ||
       formData.address === "" ||
+      formData.dob === "" ||
       formData.education.university === "" ||
       formData.education.degree === "" ||
       formData.education.year === ""
     ) {
       return;
     }
-    addTeacherRequest(formData, resetForm);
+    const dataWithSubjects = {
+      ...formData,
+      subjects: selectedSubjects,
+    };
+    const isEditMode = !!initialData;
+    addOrUpdateTeacherRequest(dataWithSubjects, isEditMode, () => {
+      resetForm();
+      if (onTeachersAdded) onTeachersAdded();
+    });
   };
 
   return (
     <div className="mb-[10px]">
-      {/* <h1 className="text-[26px]">Add Teachers</h1> */}
       <form onSubmit={handleSubmit}>
         <div className="glassmorphism rounded-lg p-5 mt-5">
           <h2 className="text-[18px] font-bold tracking-[1px]">
@@ -109,7 +175,7 @@ export default function AddTeacherForm() {
           </h2>
           <div className="border-[1px]  opacity-50 rounded-full my-5" />
           <div className="flex flex-wrap -mx-2">
-            <div className="w-1/2 px-2 mb-4 space-y-1">
+            <div className="w-full md:w-1/2 px-2 mb-4 space-y-1">
               <label>First Name: </label>
               <input
                 type="text"
@@ -120,7 +186,7 @@ export default function AddTeacherForm() {
                 className={formInputStyle}
               />
             </div>
-            <div className="w-1/2 px-2 mb-4 space-y-1">
+            <div className="w-full md:w-1/2 px-2 mb-4 space-y-1">
               <label>Last Name: </label>
               <input
                 type="text"
@@ -131,7 +197,7 @@ export default function AddTeacherForm() {
                 className={formInputStyle}
               />
             </div>
-            <div className="w-1/2 px-2 mb-4 space-y-1">
+            <div className="w-full md:w-1/2 px-2 mb-4 space-y-1">
               <label>Email: </label>
               <input
                 type="email"
@@ -142,7 +208,7 @@ export default function AddTeacherForm() {
                 className={formInputStyle}
               />
             </div>
-            <div className="w-1/2 px-2 mb-4 space-y-1">
+            <div className="w-full md:w-1/2 px-2 mb-4 space-y-1">
               <label>Password: </label>
               <input
                 type="password"
@@ -153,7 +219,7 @@ export default function AddTeacherForm() {
                 className={formInputStyle}
               />
             </div>
-            <div className="w-1/2 px-2 mb-4 space-y-1">
+            <div className="w-full md:w-1/2 px-2 mb-4 space-y-1">
               <label>Phone: </label>
               <input
                 type="number"
@@ -164,7 +230,7 @@ export default function AddTeacherForm() {
                 className={formInputStyle}
               />
             </div>
-            <div className="w-1/2 px-2 mb-4 space-y-1">
+            <div className="w-full md:w-1/2 px-2 mb-4 space-y-1">
               <label>Date of Birth: </label>
               <input
                 type="date"
@@ -175,7 +241,7 @@ export default function AddTeacherForm() {
                 className={formInputStyle}
               />
             </div>
-            <div className="w-1/2 px-2 mb-4 space-y-1">
+            <div className="w-full md:w-1/2 px-2 mb-4 space-y-1">
               <label>Address: </label>
               <textarea
                 name="address"
@@ -185,7 +251,7 @@ export default function AddTeacherForm() {
                 className={`${formInputStyle} h-32`}
               />
             </div>
-            <div className="w-1/2 px-2 mb-4 space-y-1">
+            <div className="w-full md:w-1/2 px-2 mb-4 space-y-1">
               <label>Profile Image: </label>
               <img
                 src={imagePreviewUrl || "/profile-avatar.png"}
@@ -231,7 +297,7 @@ export default function AddTeacherForm() {
           <h2 className="text-[18px] font-bold tracking-[1px]">Education</h2>
           <div className="border-[1px]  opacity-50 rounded-full my-5" />
           <div className="flex flex-wrap -mx-2">
-            <div className="w-1/2 px-2 mb-4 space-y-1">
+            <div className="w-full md:w-1/2 px-2 mb-4 space-y-1">
               <label>University: </label>
               <input
                 type="text"
@@ -242,7 +308,7 @@ export default function AddTeacherForm() {
                 className={formInputStyle}
               />
             </div>
-            <div className="w-1/2 px-2 mb-4 space-y-1">
+            <div className="w-full md:w-1/2 px-2 mb-4 space-y-1">
               <label>Degree: </label>
               <input
                 type="text"
@@ -253,7 +319,7 @@ export default function AddTeacherForm() {
                 className={formInputStyle}
               />
             </div>
-            <div className="w-1/2 px-2 mb-4 space-y-1">
+            <div className="w-full md:w-1/2 px-2 mb-4 space-y-1">
               <label>Year: </label>
               <input
                 type="text"
@@ -267,18 +333,102 @@ export default function AddTeacherForm() {
           </div>
         </div>
 
+        <div className="h-8" />
+        <div className="w-full md:w-1/2 px-2 mb-4 space-y-1">
+          {subjects.map((subject) => (
+            <div key={subject._id} className="mb-2">
+              <input
+                type="checkbox"
+                id={subject._id}
+                value={subject._id}
+                disabled={continueWithoutSubject}
+                checked={selectedSubjects.includes(subject._id)}
+                onChange={(e) =>
+                  handleCheckboxChange(subject._id, e.target.checked)
+                }
+              />
+              <label htmlFor={subject._id} className="ml-2">
+                {subject.name}
+              </label>
+            </div>
+          ))}
+
+          <div>
+            <input
+              type="checkbox"
+              id="continueWithoutSubject"
+              checked={continueWithoutSubject}
+              onChange={(e) =>
+                handleContinueWithoutSubjectChange(e.target.checked)
+              }
+            />
+            <label htmlFor="continueWithoutSubject" className="ml-2">
+              Continue without subject
+            </label>
+          </div>
+        </div>
+        <div>
+          {formData.salary.map((salary, index) => (
+            <div key={index} className="mb-2">
+              <span>Amount: {salary.amount}</span>,{" "}
+              <span>Month: {salary.month}</span>,{" "}
+            </div>
+          ))}
+          {!isAddingSalary && (
+            <button
+              type="button"
+              onClick={() => setIsAddingSalary(true)}
+              className="bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded transition duration-300"
+            >
+              Add Salary
+            </button>
+          )}
+          {isAddingSalary && (
+            <div className="w-full md:w-1/2 px-2 mb-4 space-y-1">
+              <label>Amount: </label>
+              <input
+                type="text"
+                value={newSalary.amount}
+                onChange={(e) =>
+                  setNewSalary({ ...newSalary, amount: e.target.value })
+                }
+                className={formInputStyle}
+              />
+              <label>Month: </label>
+              <input
+                type="text"
+                value={newSalary.month}
+                onChange={(e) =>
+                  setNewSalary({ ...newSalary, month: e.target.value })
+                }
+                className={formInputStyle}
+              />
+
+              <div className="flex gap-2 mt-2">
+                <button
+                  type="button"
+                  onClick={addSalaryToList}
+                  className="bg-green-500 hover:bg-green-700 text-white py-2 px-4 rounded transition duration-300"
+                >
+                  Add to List
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsAddingSalary(false)}
+                  className="bg-red-500 hover:bg-red-700 text-white py-2 px-4 rounded transition duration-300"
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
         <div className="flex justify-end gap-2 my-2">
-          {/* <button
-            type="button"
-            className="bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-4 rounded transition duration-300"
-          >
-            Cancel
-          </button> */}
           <button
             type="submit"
             className="bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded transition duration-300"
           >
-            Save
+            {initialData ? "Update" : "Save"}{" "}
           </button>
         </div>
       </form>
