@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import AttendanceCard from '@/components/cards/AttendanceCard';
 import Calendar from "@/components/calendar";
 
 export default function student_attendance() {
