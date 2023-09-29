@@ -7,6 +7,8 @@ import axios from "axios";
 
 export default function Subjects() {
   const [subjects, setSubjects] = useState(null);
+  const [teachers, setTeachers] = useState(null);
+  const [students, setStudents] = useState(null);
   const [addSubjectToggle, setAddSubjectToggle] = useState(false);
   const [editingSubject, setEditingSubject] = useState(null);
 
@@ -18,6 +20,28 @@ export default function Subjects() {
         `${process.env.NEXT_PUBLIC_SERVER_URL}/subject/getAll`
       );
       setSubjects(res.data.subjects);
+    } catch (error) {
+      console.log("failure", error);
+    }
+  }
+
+  async function fetchStudents  () {
+    try {
+      const res = await axios.get(
+        `${process.env.NEXT_PUBLIC_SERVER_URL}/student/getAll`
+      );
+      setStudents(res.data.students);
+    } catch (error) {
+      console.log("failure", error);
+    }
+  }
+
+  async function fetchTeachers() {
+    try {
+      const res = await axios.get(
+        `${process.env.NEXT_PUBLIC_SERVER_URL}/teacher/getAll`
+      );
+      setTeachers(res.data.teachers);
     } catch (error) {
       console.log("failure", error);
     }
@@ -51,6 +75,8 @@ export default function Subjects() {
 
   useEffect(() => {
     fetchSubjects();
+    fetchTeachers();
+    fetchStudents();
   }
   , []);
 
@@ -70,7 +96,7 @@ export default function Subjects() {
         </button>
       </span>
       {addSubjectToggle ? (
-        <AddSubjectForm onSubjectsAdded={refreshSubjects} initialData={editingSubject}/>
+        <AddSubjectForm onSubjectsAdded={refreshSubjects} initialData={editingSubject} teachers={teachers} students={students}/>
       ) : (
         <div>
           {subjects && (

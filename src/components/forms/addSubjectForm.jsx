@@ -16,7 +16,9 @@ async function addSubjectRequest(data, isEditMode, onSuccess) {
   }
 }
 
-export default function AddSubjectForm({ onSubjectAdded, initialData }) {
+export default function AddSubjectForm({ onSubjectAdded, initialData, teachers, students }) {
+  console.log("teachers", teachers);
+  console.log("students", students);
   const formInputStyle =
     "bg-transparent border border-gray-300 rounded-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent";
   const initialFormData = {
@@ -86,6 +88,43 @@ export default function AddSubjectForm({ onSubjectAdded, initialData }) {
                 required
               />
             </div>
+
+
+            <div className="w-full px-2 mb-4 space-y-1">
+          <label>Teacher: </label>
+          <select
+            className={formInputStyle}
+            name="teacher"
+            value={formData.teacher}
+            onChange={handleInputChange}
+            required
+          >
+            <option value="">Select Teacher</option>
+            {teachers.map((teacher) => (
+              <option key={teacher._id} value={teacher._id}>
+                {teacher.firstName} {teacher.lastName}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="w-full px-2 mb-4 space-y-1">
+          <label>Students: </label>
+          <select
+            className={formInputStyle}
+            name="students"
+            value={formData.students}
+            onChange={handleInputChange}
+            required
+            multiple
+          >
+            {students.map((student) => (
+              <option key={student._id} value={student._id}>
+                {student.firstName} {student.lastName}
+              </option>
+            ))}
+          </select>
+        </div>
           </div>
         </div>
 
