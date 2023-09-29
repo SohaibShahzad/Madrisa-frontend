@@ -34,10 +34,10 @@ export default function DashboardLayout({ children }) {
               : "w-full min-h-screen flex flex-col"
           }
         >
-          <div className="fixed bg-[#1A202C] z-[1000] w-full">
+          <div className="ml-5 fixed bg-[#1A202C] z-[1000] w-full">
             <DashNavbar />
           </div>
-          <main className="flex-grow mx-5 md:mx-[2.5rem] mt-[3.5rem]">{children}</main>
+          <main className="flex-grow mx-5 md:mx-[4rem] mt-[3.5rem]">{children}</main>
         </div>
       </div>
   );

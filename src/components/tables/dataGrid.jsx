@@ -29,7 +29,9 @@ function DataGrid({
                   {cell}
                 </td>
               ))}
-              <td className="border border-gray-300 px-2 py-1 flex justify-evenly">
+              <td className="border border-gray-300 px-2 py-1">
+                <div className="flex justify-evenly gap-3">
+
                 {showEditButton && (
                   <button
                     onClick={() => onEdit(item)}
@@ -52,6 +54,7 @@ function DataGrid({
                     View
                   </button>
                 )}{" "}
+                </div>
               </td>
             </tr>
           ))}

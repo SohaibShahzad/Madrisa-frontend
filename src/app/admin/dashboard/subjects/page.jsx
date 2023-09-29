@@ -98,7 +98,7 @@ export default function Subjects() {
       {addSubjectToggle ? (
         <AddSubjectForm onSubjectsAdded={refreshSubjects} initialData={editingSubject} teachers={teachers} students={students}/>
       ) : (
-        <div>
+        <div className="overflow-x-auto">
           {subjects && (
             <DataGrid
               data={subjects}

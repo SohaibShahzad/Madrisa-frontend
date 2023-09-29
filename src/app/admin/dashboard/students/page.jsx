@@ -86,7 +86,7 @@ export default function Students() {
       ) : addStudentToggle ? (
         <AddStudentForm onStudentsAdded={refreshStudents} initialData={editingStudent} />
       ) : (
-        <div>
+        <div className="overflow-x-auto">
           {students && (
             <DataGrid
               data={students}

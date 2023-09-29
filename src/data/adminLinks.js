@@ -32,27 +32,17 @@ export const adminLinks = [
     ],
   },
   {
-    title: "Attendance Management",
+    title: "Management",
     links: [
       {
-        label: "Student's Attendance",
-        href: "/admin/dashboard/student-attendance",
+        label: "Attendance Management",
+        href: "/admin/dashboard/attendance-management",
         icon: <TbChecklist className="w-6 h-6" />,
       },
       {
-        label: "Teacher's Attendance",
-        href: "/admin/dashboard/teacher-attendance",
-        icon: <FaUsers className="w-6 h-6" />,
-      },
-    ],
-  },
-  {
-    title: "Academic Management",
-    links: [
-      {
-        label: "Manage Subjects",
+        label: "Subject Management",
         href: "/admin/dashboard/subjects",
-        icon: <BiSolidBookContent className="w-6 h-6" />,
+        icon: <FaUsers className="w-6 h-6" />,
       },
     ],
   },

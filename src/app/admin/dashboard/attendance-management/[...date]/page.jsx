@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   Avatar,
@@ -10,41 +10,44 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Button,
 } from "@mui/material";
 import AttendanceTableHeading from "@/components/tables/attendanceTableHeading";
 import axios from "axios";
-import Link from "next/link";
 
 export default function AttendanceByDate() {
   const { date } = useParams();
-  const [students, setStudents] = useState([]);
+  const query = useSearchParams();
+  const queryData = query.get("member");
+  const [personnel, setPersonnel] = useState([]);
   const [selectedAttendanceStatus, setSelectedAttendanceStatus] =
     useState(null);
 
-  async function fetchStudents() {
+  async function fetchPersonnel() {
+    const endpoint =
+      queryData === "Student"
+        ? `${process.env.NEXT_PUBLIC_SERVER_URL}/student/getAll`
+        : `${process.env.NEXT_PUBLIC_SERVER_URL}/teacher/getAll`;
+
     try {
-      const res = await axios.get(
-        `${process.env.NEXT_PUBLIC_SERVER_URL}/student/getAll`
-      );
-      setStudents(res.data.students);
+      const res = await axios.get(endpoint);
+      const personnelData = res.data.students || res.data.teachers;
+      setPersonnel(personnelData);
     } catch (error) {
       console.log("failure", error);
     }
   }
-  function handleAttendanceChange(studentId, setTo) {
-    console.log("studentId", studentId);
+  function handleAttendanceChange(personnelId, setTo) {
     // Use the `date` from params instead of the current date
     const selectedDate = new Date(date).setHours(0, 0, 0, 0);
 
-    setStudents((prev) => {
-      const updatedStudents = prev.map((student) =>
-        student._id === studentId
+    setPersonnel((prev) => {
+      const updatedPersonnel = prev.map((personnel) =>
+        personnel._id === personnelId
           ? {
-              ...student,
-              attendance: student.attendance?.length
+              ...personnel,
+              attendance: personnel.attendance?.length
                 ? [
-                    ...student.attendance.filter(
+                    ...personnel.attendance.filter(
                       (a) =>
                         new Date(a.date).toDateString() !==
                         new Date(selectedDate).toDateString()
@@ -56,32 +59,33 @@ export default function AttendanceByDate() {
                   ]
                 : [{ date: selectedDate, status: setTo }],
             }
-          : student
+          : personnel
       );
 
-      // Check whether all students have the same attendance status
-      const allSameStatus = updatedStudents.every((student) => {
-        const attendanceForDate = student.attendance?.find(
+      // Check whether all personnels have the same attendance status
+      const allSameStatus = updatedPersonnel.every((personnel) => {
+        const attendanceForDate = personnel.attendance?.find(
           (a) => new Date(a.date).setHours(0, 0, 0, 0) === selectedDate
         ) || { status: null };
         return attendanceForDate.status === setTo;
       });
 
-      // If not all students have the same status, set selectedAttendanceStatus to null
+      // If not all personnel have the same status, set selectedAttendanceStatus to null
       if (!allSameStatus) {
         setSelectedAttendanceStatus(null);
       }
 
-      return updatedStudents;
+      return updatedPersonnel;
     });
   }
 
   async function handleSaveAttendance() {
+    const endpoint =
+      queryData === "Student"
+        ? `${process.env.NEXT_PUBLIC_SERVER_URL}/student/bulkAttendance`
+        : `${process.env.NEXT_PUBLIC_SERVER_URL}/teacher/bulkAttendance`;
     try {
-      await axios.post(
-        `${process.env.NEXT_PUBLIC_SERVER_URL}/student/bulkAttendance`,
-        students
-      );
+      await axios.post(endpoint, personnel);
     } catch (error) {
       console.log("Unable to save attendance", error);
     }
@@ -90,11 +94,11 @@ export default function AttendanceByDate() {
   useEffect(() => {
     if (selectedAttendanceStatus) {
       const selectedDate = new Date(date).setHours(0, 0, 0, 0);
-      setStudents((prevStudents) =>
-        prevStudents.map((student) => ({
-          ...student,
+      setPersonnel((prevPersonnel) =>
+        prevPersonnel.map((personnel) => ({
+          ...personnel,
           attendance: [
-            ...student.attendance.filter(
+            ...personnel.attendance.filter(
               (a) =>
                 new Date(a.date).toDateString() !==
                 new Date(selectedDate).toDateString()
@@ -110,28 +114,36 @@ export default function AttendanceByDate() {
   }, [selectedAttendanceStatus]);
 
   useEffect(() => {
-    fetchStudents();
+    fetchPersonnel();
   }, []);
 
   return (
-    <div className="flex h-[calc(100vh-4.6rem)] w-full flex-col overflow-hidden ">
-      <h1 className="flex h-20 items-center px-2 text-3xl font-bold capitalize">
-        Update Attendance for {date}
-      </h1>
-      <div className="h-full max-w-7xl flex-grow overflow-y-auto px-3 md:px-5 ">
-        <TableContainer className="h-[50rem]">
+    <div className="flex h-[calc(100vh-4.6rem)] mt-1 w-full flex-col overflow-hidden ">
+      <span className="flex justify-between items-start">
+        <h1 className="text-2xl">Attendance for {date}</h1>
+      </span>
+      <div className="h-full flex-grow overflow-y-auto px-3 md:px-5 ">
+        <TableContainer>
           <Table stickyHeader aria-label="sticky table" size="small">
             <TableHead>
               <TableRow>
                 <TableCell
-                  className="bg-transparent text-white font-poppins"
+                  style={{
+                    backgroundColor: "transparent",
+                    color: "white",
+                    fontFamily: "Poppins",
+                  }}
                   align="center"
                   colSpan={2}
                 >
                   Details
                 </TableCell>
                 <TableCell
-                  className="bg-transparent text-white font-poppins"
+                  style={{
+                    backgroundColor: "transparent",
+                    color: "white",
+                    fontFamily: "Poppins",
+                  }}
                   align="center"
                   colSpan={3}
                 >
@@ -144,8 +156,8 @@ export default function AttendanceByDate() {
               />
             </TableHead>
             <TableBody>
-              {students.map((student, i) => {
-                const attendanceForDate = student.attendance?.find((a) => {
+              {personnel.map((personnel, i) => {
+                const attendanceForDate = personnel.attendance?.find((a) => {
                   return (
                     new Date(a.date).setHours(0, 0, 0, 0) ===
                     new Date(date).setHours(0, 0, 0, 0)
@@ -156,16 +168,22 @@ export default function AttendanceByDate() {
                     hover
                     role="checkbox"
                     tabIndex={-1}
-                    key={student.id}
+                    key={personnel.id}
                   >
-                    <TableCell className="text-white font-poppins">
-                      {student.rollNo}
+                    <TableCell
+                      style={{
+                        backgroundColor: "transparent",
+                        color: "white",
+                        fontFamily: "Poppins",
+                      }}
+                    >
+                      {i + 1}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center text-white font-poppins">
                         <div>{/* Avatar rendering logic here */}</div>
                         <div>
-                          {student.firstName} {student.lastName}
+                          {personnel.firstName} {personnel.lastName}
                         </div>
                       </div>
                     </TableCell>
@@ -177,7 +195,7 @@ export default function AttendanceByDate() {
                             ? "ring-2 ring-green-500"
                             : ""
                         }`}
-                        onClick={() => handleAttendanceChange(student._id, "p")}
+                        onClick={() => handleAttendanceChange(personnel._id, "p")}
                       >
                         P
                       </Avatar>
@@ -190,7 +208,7 @@ export default function AttendanceByDate() {
                             ? "ring-2 ring-red-500"
                             : ""
                         }`}
-                        onClick={() => handleAttendanceChange(student._id, "a")}
+                        onClick={() => handleAttendanceChange(personnel._id, "a")}
                       >
                         A
                       </Avatar>
@@ -203,7 +221,7 @@ export default function AttendanceByDate() {
                             ? "ring-2 ring-yellow-500"
                             : ""
                         }`}
-                        onClick={() => handleAttendanceChange(student._id, "l")}
+                        onClick={() => handleAttendanceChange(personnel._id, "l")}
                       >
                         L
                       </Avatar>
@@ -214,13 +232,12 @@ export default function AttendanceByDate() {
             </TableBody>
           </Table>
         </TableContainer>
-        <Button
-          variant="contained"
-          color="primary"
+        <button
+          className="bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded mt-5"
           onClick={handleSaveAttendance}
         >
           Save Attendance
-        </Button>
+        </button>
       </div>
     </div>
   );
